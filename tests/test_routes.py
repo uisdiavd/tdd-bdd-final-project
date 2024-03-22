@@ -178,3 +178,39 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         # logging.debug("data = %s", data)
         return len(data)
+
+    def test_get_product(self):
+        """ Test getting one product route """
+        products = self._create_products(1)
+        test_product = products[0]
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        returned_json = response.get_json()
+        self.assertEqual(returned_json["name"], test_product.name)
+
+    def test_get_product_not_found(self):
+        """ Test product not found route """
+        id = 0
+        response = self.client.get(f"{BASE_URL}/{id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+    def test_update_product(self):
+        """ Test update product route """
+        # Create a product for setup
+        products = self._create_products(1)
+        test_product = products[0]
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        returned_json = response.get_json()
+        self.assertEqual(returned_json["name"], test_product.name)
+        # Update product
+        returned_json["description"] = "a new description"
+        response = self.client.put(f"{BASE_URL}/{returned_json['id']}", json=returned_json)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["description"], "a new description")
+
+
+

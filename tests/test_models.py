@@ -135,7 +135,7 @@ class TestProductModel(unittest.TestCase):
         products = Product.all()
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].id, original_id)
-        self.assertEqual(products[0].desscription, "this couldnt possibly have been generated")
+        self.assertEqual(products[0].description, "this couldnt possibly have been generated")
 
     def test_delete_a_product(self):
         """ Test deleting a product """
