@@ -23,6 +23,7 @@ from flask import url_for  # noqa: F401 pylint: disable=unused-import
 from service.models import Product
 from service.common import status  # HTTP Status Codes
 from . import app
+from service.models import Product, Category
 
 
 ######################################################################
@@ -102,6 +103,37 @@ def create_products():
 # PLACE YOUR CODE TO LIST ALL PRODUCTS HERE
 #
 
+@app.route("/products", methods=["GET"])
+def list_all_products():
+    """ List all products """
+    # Setup
+    app.logger.info("Request to list all products")
+    products = []
+
+    # By argument
+    name = request.args.get("name")
+    category = request.args.get("category")
+    if name:
+        app.logger.info("Finding by name: %s", name)
+        products = Product.find_by_name(name)
+    elif category:
+        app.logger.info("Finding by category: %s", category)
+        category_value = getattr(Category, category.upper())
+        products = Product.find_by_category(category_value)
+    else:
+        app.logger.info("Finding all")
+        products = Product.all()
+    
+    # Manipulation
+    list = [product.serialize() for product in products]
+    count = len(list)
+
+    # Checks
+    app.logger.info("[%s] products were returned", count)
+    return list, status.HTTP_200_OK
+
+
+
 ######################################################################
 # R E A D   A   P R O D U C T
 ######################################################################
@@ -126,6 +158,17 @@ def get_products(product_id):
 #
 # PLACE YOUR CODE TO UPDATE A PRODUCT HERE
 #
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_products(product_id):
+    """ Updates an existing product """
+    app.logger.info("Request to update a product with id [%s]", product_id)
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product was not found with id '{product_id}'.")
+    product.deserialize(request.get_json())
+    product.id = product_id
+    product.update()
+    return product.serialize(), status.HTTP_200_OK
 
 ######################################################################
 # D E L E T E   A   P R O D U C T
@@ -135,3 +178,12 @@ def get_products(product_id):
 #
 # PLACE YOUR CODE TO DELETE A PRODUCT HERE
 #
+
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_products(product_id):
+    """ Delete a product """
+    app.logger.info("Request to delete a product with id [%s]", product_id)
+    product = Product.find(product_id)
+    if product:
+        product.delete()
+    return "", status.HTTP_204_NO_CONTENT
