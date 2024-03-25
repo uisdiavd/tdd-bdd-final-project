@@ -135,7 +135,7 @@ class TestProductRoutes(TestCase):
         # Uncomment this code once READ is implemented
         #
 
-        # # Check that the location header was correct
+        # Check that the location header was correct
         # response = self.client.get(location)
         # self.assertEqual(response.status_code, status.HTTP_200_OK)
         # new_product = response.get_json()
@@ -257,29 +257,35 @@ class TestProductRoutes(TestCase):
         # Create 5 products for setup
         products = self._create_products(5)
 
-        # Prep list by name
+        # Prep list
         test_category = products[0].category
         count = [product for product in products if product.category == test_category]
+
+        # Check list by name
         response = self.client.get(BASE_URL, query_string=f"category={test_category.name}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         returned_json = response.get_json()
         self.assertEqual(len(returned_json), len(count))
+
+        # Check list values
         for product in returned_json:
             self.assertEqual(product["category"], test_category.name)
 
-# solution code:
-#    def test_query_by_category(self):
-#         """It should Query Products by category"""
-#         products = self._create_products(10)
-#         category = products[0].category
-#         found = [product for product in products if product.category == category]
-#         found_count = len(found)
-#         logging.debug("Found Products [%d] %s", found_count, found)    
-#         # test for available
-#         response = self.client.get(BASE_URL, query_string=f"category={category.name}")
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         data = response.get_json()
-#         self.assertEqual(len(data), found_count)
-#         # check the data just to be sure
-#         for product in data:
-#             self.assertEqual(product["category"], category.name)
+    def test_list_by_availability(self):
+        """ Test listing products by availability """
+        # Set up products
+        products = self._create_products(5)
+
+        # Prep list
+        test_availability = True
+        count = len([product for product in products if product.available == test_availability])
+
+        # Check list by availability
+        response = self.client.get(BASE_URL, query_string=f"available=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        returned_json = response.get_json()
+        self.assertEqual(len(returned_json), count)
+
+        # Check list values
+        for product in returned_json:
+            self.assertEqual(product["available"], True)

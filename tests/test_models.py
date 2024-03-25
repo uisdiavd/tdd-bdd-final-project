@@ -125,17 +125,20 @@ class TestProductModel(unittest.TestCase):
         product.id = None
         product.create()
         self.assertIsNotNone(product.id)
-        # update
+        # Update
         product.description = "this couldnt possibly have been generated"
         original_id = product.id
         product.update()
         self.assertEqual(original_id, product.id)
         self.assertEqual("this couldnt possibly have been generated", product.description)
-        # get all products
+        # Test for changes
         products = Product.all()
         self.assertEqual(len(products), 1)
         self.assertEqual(products[0].id, original_id)
         self.assertEqual(products[0].description, "this couldnt possibly have been generated")
+        # Test validation error
+        # product.id = False
+        # self.assertRaises(DataValidationError, product.update())
 
     def test_delete_a_product(self):
         """ Test deleting a product """
@@ -172,6 +175,32 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(count, found.count())
         for product in found:
             self.assertEqual(product.name, product_name)
+    
+    def test_find_by_price(self):
+        """ Test finding product by price """
+        # Product list setup
+        for _ in range(5):
+            product = ProductFactory()
+            product.create()
+        
+        # Product list check
+        products = Product.all()
+        product_price = products[0].price
+        count = len([product for product in products if product.price == product_price])
+        found = Product.find_by_price(product_price)
+        self.assertEqual(count, found.count())
+
+        # Check that prices match
+        for product in found:
+            self.assertEqual(product_price, product.price)
+
+        # Check handling if price is a string
+        product_price = products[0].price
+        as_string = str(product_price)
+        found = Product.find_by_price(as_string)
+        for product in found:
+            self.assertEqual(product.price, product_price)
+
 
     def test_find_product_by_availability(self):
         """ Test finding product by availability """

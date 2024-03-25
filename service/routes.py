@@ -113,6 +113,7 @@ def list_all_products():
     # By argument
     name = request.args.get("name")
     category = request.args.get("category")
+    availability = request.args.get("available")
     if name:
         app.logger.info("Finding by name: %s", name)
         products = Product.find_by_name(name)
@@ -120,6 +121,10 @@ def list_all_products():
         app.logger.info("Finding by category: %s", category)
         category_value = getattr(Category, category.upper())
         products = Product.find_by_category(category_value)
+    elif availability:
+        app.logger.info("Finding by availability: %s", availability)
+        availability_value = availability.lower() in ["true", "yes", "1"]
+        products = Product.find_by_availability(availability_value)
     else:
         app.logger.info("Finding all")
         products = Product.all()
